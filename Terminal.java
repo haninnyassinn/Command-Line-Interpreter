@@ -1,121 +1,61 @@
-
-package com.example.os.commands.ass1;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-class Parser {
-    String commandName;
-    String[] args = null;
-    
-    public boolean parse(String input) {
-        String[] words = input.split(" ");
-        args = new String[words.length-1];  // size of arge is number of words - command name
-        commandName = words[0];
-        
-        for(int i=1; i<words.length; i++){
-            args[i-1] = words[i];
-        }
-        // two special case(the commands >, >> is not the first word)
-        // case that the command is not true
-        
-        return false;
-    } 
-    
-    public String getCommandName() {return commandName;}
-    // get args function
-}
+import java.nio.file.StandardCopyOption;
 
 public class Terminal {
     Parser parser;
     Path path;
-    
-    
+
     Terminal(Parser p) {
         parser = p;
-        path = Paths.get(System.getProperty("user.home"));
+        path = Paths.get("/home");
     }
-    
+
     public void chooseCommandAction() {
         // conditions to choose the appropriate function
-        if(parser.getCommandName().equals("pwd")) {
+        if (parser.getCommandName().equals("pwd")) {
             pwd();
-        }
-        
-        else if(parser.getCommandName().equals("cd")) {
+        } else if (parser.getCommandName().equals("cd")) {
             cd();
+        } else if (parser.getCommandName().equals("cp -r")) {
+            cp_r(parser.args[0], parser.args[1]);
         }
+
         // ......
     }
-    
+
+
     // commands
     public void pwd() {
         System.out.println("path");
     }
-    
+
     public void cd() {
-        if(parser.args.length == 0) {
-            path = Paths.get(System.getProperty("user.home"));
-        }
-        else if(parser.args[0].equals("..")) {
+        if (parser.args.length == 0) {
+            path = Paths.get("/home");
+        } else if (parser.args[0].equals("..")) {
             path = path.getParent();
         }
-        else if(parser.args.length == 1) {
-            Path inputPath = path.resolve(Paths.get(parser.args[0])).normalize();
-            if(!Files.exists(inputPath)) {
-                System.out.print("bash: cd: " + inputPath + ": No such file or directory\n");
-            }
-            else {
-                if(inputPath.isAbsolute()) {
-                   path = inputPath.normalize();
-            }
-               else {
-                   path = inputPath;
-            }
-           }   
+        //else
+
+    }
+
+    public void cp_r(String sourceDir, String targetDir) {
+        File src = new File(sourceDir);
+        File dest = new File(targetDir, src.getName());
+        try {
+            Files.copy(src.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("File copied from " + sourceDir + " to " + targetDir);
+        } catch (Exception e) {
+            System.out.println("Error copying file: " + e.getMessage());
         }
     }
+
     // ......
-    
-    public void path() { System.out.println(path);}
-    
-    
-    public static void main(String[] args) {
-        
-        Parser parser = new Parser();
-        Terminal terminal = new Terminal(parser);
-        
-        parser.parse("cd");
-        terminal.chooseCommandAction();
-        terminal.path();
-        
-        System.out.println("\n");
-        
-        parser.parse("cd ..");
-        terminal.chooseCommandAction();
-        terminal.path();
-        
-        System.out.println("\n");
-        
-        parser.parse("cd c:/Users/hp/Arduino/project");   // full path
-        terminal.chooseCommandAction();
-        terminal.path();
-        
-        System.out.println("\n");
-        
-        parser.parse("cd");
-        terminal.chooseCommandAction();
-        terminal.path();
-        
-        System.out.println("\n");
-        
-        parser.parse("cd Documents");   // relative path
-        terminal.chooseCommandAction();
-        terminal.path();
-        
-        System.out.println("\n");
-        
-        
-        
+
+    public void path() {
+        System.out.println(path);
     }
 }
