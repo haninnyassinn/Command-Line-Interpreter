@@ -106,15 +106,32 @@ public class Terminal {
                 }
             }
         }
-
     }
     //ls command
     public void ls(){
 
     }
     //mkdir command
-    public void mkdir(){
-
+    public void mkdir() {
+        for (String arg : parser.args) {
+            Path dir = Paths.get(arg);
+            
+            if(!dir.isAbsolute()){
+                dir = path.resolve(dir);
+            }
+            
+            if(Files.exists(dir)) {
+                System.out.println("Directory already exists: " + dir);
+            }
+            else {
+                try {
+                Files.createDirectories(dir);
+            } 
+                catch(IOException e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+        }
     }
     //rmdir command
     public void rmdir(){
@@ -219,3 +236,4 @@ public class Terminal {
 
     }
 }
+
