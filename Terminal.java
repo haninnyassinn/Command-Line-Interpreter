@@ -1,5 +1,6 @@
 
 package com.example.os.commands.ass1;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -10,7 +11,6 @@ class Parser {
     public boolean parse(String input) {
         String[] words = input.split(" ");
         args = new String[words.length-1];  // size of arge is number of words - command name
-        
         commandName = words[0];
         
         for(int i=1; i<words.length; i++){
@@ -33,7 +33,7 @@ public class Terminal {
     
     Terminal(Parser p) {
         parser = p;
-        path = Paths.get("/home");
+        path = Paths.get(System.getProperty("user.home"));
     }
     
     public void chooseCommandAction() {
@@ -55,12 +55,25 @@ public class Terminal {
     
     public void cd() {
         if(parser.args.length == 0) {
-            path = Paths.get("/home");
+            path = Paths.get(System.getProperty("user.home"));
         }
         else if(parser.args[0].equals("..")) {
             path = path.getParent();
         }
-        //else 
+        else if(parser.args.length == 1) {
+            Path inputPath = path.resolve(Paths.get(parser.args[0])).normalize();
+            if(!Files.exists(inputPath)) {
+                System.out.print("bash: cd: " + inputPath + ": No such file or directory\n");
+            }
+            else {
+                if(inputPath.isAbsolute()) {
+                   path = inputPath.normalize();
+            }
+               else {
+                   path = inputPath;
+            }
+           }   
+        }
     }
     // ......
     
@@ -73,22 +86,34 @@ public class Terminal {
         Terminal terminal = new Terminal(parser);
         
         parser.parse("cd");
-        //System.out.print(parser.getCommandName());
         terminal.chooseCommandAction();
         terminal.path();
+        
+        System.out.println("\n");
         
         parser.parse("cd ..");
         terminal.chooseCommandAction();
         terminal.path();
         
+        System.out.println("\n");
+        
+        parser.parse("cd c:/Users/hp/Arduino/project");   // full path
+        terminal.chooseCommandAction();
+        terminal.path();
+        
+        System.out.println("\n");
         
         parser.parse("cd");
         terminal.chooseCommandAction();
         terminal.path();
         
+        System.out.println("\n");
         
+        parser.parse("cd Documents");   // relative path
+        terminal.chooseCommandAction();
+        terminal.path();
         
-        
+        System.out.println("\n");
         
         
         
