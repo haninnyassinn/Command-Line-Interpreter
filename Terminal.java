@@ -1,10 +1,12 @@
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.io.IOException;
-import java.nio.file.*;
+//import java.nio.file.*;
 import java.util.Scanner;
 import java.nio.file.StandardCopyOption;
+
 
 class Parser {
     private  String commandName;
@@ -56,7 +58,8 @@ public class Terminal {
         else if (cmd.equals("mkdir")) {
             mkdir();}
         else if (cmd.equals("rmdir")) {
-            rmdir();}
+            rmdir();
+        }
         else if (cmd.equals("touch")) {
             touch();}
         else if (cmd.equals("rm")) {
@@ -113,7 +116,7 @@ public class Terminal {
     }
     //mkdir command
     public void mkdir() {
-        for (String arg : parser.args) {
+        for (String arg : parser.getArgs()) {
             Path dir = Paths.get(arg);
             
             if(!dir.isAbsolute()){
@@ -134,8 +137,54 @@ public class Terminal {
         }
     }
     //rmdir command
-    public void rmdir(){
+    public void rmdir() {
+        try {
+            if (parser.getArgs().length == 0) {
+                System.out.println("rmdir: missing argument");
+                return;
+            }
+            if (parser.getArgs().length > 1) {
+                System.out.println("rmdir: too many arguments");
+                return;
+            }
+            if (parser.getArgs()[0].equals("*")) {
+                File[] files = new File(path.toString()).listFiles();
+                if (files == null) {
+                    System.out.println("rmdir: cannot read directory contents");
+                    return;
+                }
+                for (File file : files) {
+                    if (Files.isDirectory(file.toPath())) {
+                        String[] contents = file.list();
+                        if (contents != null && contents.length == 0) {
+                            Files.delete(file.toPath());
+                            System.out.println("Removed empty directory: " + file.getName());
+                        }
+                    }
+                }
+            } else if (parser.getArgs().length == 1) {
+                Path dir = Paths.get(parser.getArgs()[0]);
+                if (!dir.isAbsolute()) {
+                    dir = path.resolve(dir);
+                }
 
+                File file = new File(dir.toString());
+
+                if (!file.exists()) {
+                    System.out.println("error: the file not exist");
+                    return;
+                }
+
+                if (Files.isDirectory(file.toPath())) {
+                    String[] contents = file.list();
+                    if (contents != null && contents.length == 0) {
+                        Files.delete(file.toPath());
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("rmdir: error deleting directory");
+        }
     }
     //touch command
     public void touch(){
@@ -166,7 +215,7 @@ public class Terminal {
 
             System.out.println("File copied successfully.");
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             System.out.println("Error copying file: " + e.getMessage());
         }
     }
@@ -236,4 +285,5 @@ public class Terminal {
 
     }
 }
+
 
