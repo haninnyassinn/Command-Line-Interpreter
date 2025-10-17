@@ -343,6 +343,43 @@ public class Terminal {
 
     //WC command
     public void WC() {
+        String[] args = parser.getArgs();
+
+        if (args.length != 1) {
+            System.out.println("WC command needs one argument");
+            return;
+        }
+
+        Path filePath = path.resolve(args[0]);
+
+        if (!Files.exists(filePath)) {
+            System.out.println("File not found: " + args[0]);
+            return;
+        }
+
+        try {
+            int lineCount = 0;
+            int wordCount = 0;
+            int charCount = 0;
+
+            // Read all lines from the file
+            for (String line : Files.readAllLines(filePath)) {
+                lineCount++;
+                charCount += line.length();
+                // Split by whitespace for words
+                String[] words = line.trim().split("\\s+");
+                if (words.length == 1 && words[0].isEmpty()) {
+                    continue; // skip empty lines
+                }
+                wordCount += words.length;
+            }
+
+            System.out.println("Lines: " + lineCount +
+                    "  Words: " + wordCount +
+                    "  Characters: " + charCount);
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
+        }
 
     }
 
