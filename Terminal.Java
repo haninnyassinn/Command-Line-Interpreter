@@ -1,33 +1,37 @@
+
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.io.IOException;
-import java.nio.file.*;
+//import java.nio.file.*;
 import java.util.Scanner;
 import java.nio.file.StandardCopyOption;
-import java.io.File;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-
 class Parser {
-    private  String commandName;
-    private  String[] args = null;
+
+    private String commandName;
+    private String[] args = null;
+
     //function to specerate the command line from the arguments
     public boolean parse(String input) {
-        if (input.isEmpty()) return false; // making sure if its empty nothing happens
+        if (input.isEmpty()) {
+            return false; // making sure if its empty nothing happens
+        }
         String[] words = input.trim().split("\\s+"); // used trim to make sure no spaces before or after, used (\\s+) to make sure if there is more than space doesnt consider an arg
 
         commandName = words[0];
-        args = new String[words.length-1];  // size of arge is number of words - command name
+        args = new String[words.length - 1];  // size of arge is number of words - command name
 
-        for(int i=1; i<words.length; i++){
-            args[i-1] = words[i];
+        for (int i = 1; i < words.length; i++) {
+            args[i - 1] = words[i];
         }
-
 
         return true;
     }
+
     //getters
     public String getCommandName() {
         return commandName;
@@ -39,6 +43,7 @@ class Parser {
 }
 
 public class Terminal {
+
     private Parser parser; //object from class Parser so that we get command and args
     private Path path;
 
@@ -118,7 +123,7 @@ public class Terminal {
 
     //mkdir command
     public void mkdir() {
-        for (String arg : parser.args) {
+        for (String arg : parser.getArgs()) {
             Path dir = Paths.get(arg);
 
             if (!dir.isAbsolute()) {
@@ -139,7 +144,53 @@ public class Terminal {
 
     //rmdir command
     public void rmdir() {
+        try {
+            if (parser.getArgs().length == 0) {
+                System.out.println("rmdir: missing argument");
+                return;
+            }
+            if (parser.getArgs().length > 1) {
+                System.out.println("rmdir: too many arguments");
+                return;
+            }
+            if (parser.getArgs()[0].equals("*")) {
+                File[] files = new File(path.toString()).listFiles();
+                if (files == null) {
+                    System.out.println("rmdir: cannot read directory contents");
+                    return;
+                }
+                for (File file : files) {
+                    if (Files.isDirectory(file.toPath())) {
+                        String[] contents = file.list();
+                        if (contents != null && contents.length == 0) {
+                            Files.delete(file.toPath());
+                            System.out.println("Removed empty directory: " + file.getName());
+                        }
+                    }
+                }
+            } else if (parser.getArgs().length == 1) {
+                Path dir = Paths.get(parser.getArgs()[0]);
+                if (!dir.isAbsolute()) {
+                    dir = path.resolve(dir);
+                }
 
+                File file = new File(dir.toString());
+
+                if (!file.exists()) {
+                    System.out.println("error: the file not exist");
+                    return;
+                }
+
+                if (Files.isDirectory(file.toPath())) {
+                    String[] contents = file.list();
+                    if (contents != null && contents.length == 0) {
+                        Files.delete(file.toPath());
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("rmdir: error deleting directory");
+        }
     }
 
     //touch command
@@ -172,12 +223,12 @@ public class Terminal {
 
             System.out.println("File copied successfully.");
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             System.out.println("Error copying file: " + e.getMessage());
         }
     }
 
-    //cp -r command
+    //rm file.txt this take the argument which is file.txt and see if it exits and delete it
     public void cp_r(String sourcedir, String destdir) {
         Path source = path.resolve(sourcedir);
         Path destination = path.resolve(destdir);
@@ -214,8 +265,6 @@ public class Terminal {
         }
     }
 
-
-    //rm file.txt this take the argument which is file.txt and see if it exits and delete it
     public void rm() {
         String[] args = parser.getArgs();
         // we are taking only one argument if less or more we will return
@@ -240,7 +289,56 @@ public class Terminal {
 
     //cat command
     public void cat() {
+        String[] args = parser.getArgs();
 
+        // if no arguments
+        if (args.length == 0) {
+            System.out.println("cat should contain at least one argument");
+            return;
+        }
+
+        // One argument- print file content
+        if (args.length == 1) {
+            Path filePath = path.resolve(args[0]);
+            if (!Files.exists(filePath)) { //chacks if file exists
+                System.out.println("File not found: " + args[0]);
+                return;
+            }
+
+            try {
+                // Read and print file content line by line
+                Files.lines(filePath).forEach(System.out::println);
+            } catch (IOException e) {
+                System.out.println("Error reading file: " + e.getMessage());
+            }
+            return;
+        }
+
+        // Two arguments- concatenate files
+        if (args.length == 2) {
+            Path firstFile = path.resolve(args[0]);
+            Path secondFile = path.resolve(args[1]);
+
+            if (!Files.exists(firstFile)) {
+                System.out.println("File not found: " + args[0]);
+                return;
+            }
+
+            if (!Files.exists(secondFile)) {
+                System.out.println("File not found: " + args[1]);
+                return;
+            }
+
+            try {
+                // Read from first file and append to second
+                String content = Files.readString(firstFile);
+                Files.writeString(secondFile, content, java.nio.file.StandardOpenOption.APPEND);
+                System.out.println("Contents of " + args[0] + " appended to " + args[1]);
+            } catch (IOException e) {
+                System.out.println("Error during concatenation: " + e.getMessage());
+            }
+            return;
+        }
     }
 
     //WC command
@@ -272,7 +370,6 @@ public class Terminal {
                         zos.putNextEntry(entry);
 
                         // Copy the file content into the ZIP archive
-
                         Files.copy(filePath, zos);
 
                         zos.closeEntry();
@@ -300,13 +397,10 @@ public class Terminal {
         System.exit(0); // Ends the program
     }
 
-
     // ......
-
     public void path() {
         System.out.println(path);
     }
-
 
     public static void main(String[] args) {
         // deh al bn read beha al input zy cin keda
@@ -317,10 +411,10 @@ public class Terminal {
         while (true) {
             System.out.print("> ");
             String input = sc.nextLine();
-            if (parser.parse(input))
+            if (parser.parse(input)) {
                 terminal.chooseCommandAction();
+            }
         }
-
 
     }
 }
