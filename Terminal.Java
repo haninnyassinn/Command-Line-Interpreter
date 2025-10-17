@@ -374,9 +374,7 @@ public class Terminal {
                 wordCount += words.length;
             }
 
-            System.out.println("Lines: " + lineCount +
-                    "  Words: " + wordCount +
-                    "  Characters: " + charCount);
+            System.out.println( lineCount +" " + wordCount + " " + charCount + " "+ args[0]);
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());
         }
