@@ -489,7 +489,7 @@ public class Terminal {
         }
         // > in cat function
         for (int i = 0; i < args.length; i++) {
-            if (args[i].equals(">") && (i + 1) < args.length) {
+            if (args[i].equals(">")|| args[i].equals(">>")&& (i + 1) < args.length) {
 
                 String info = ""; // store the arguments before >
                 for (int j = 0; j < i; j++)  // this loop to get the info before >
@@ -507,7 +507,8 @@ public class Terminal {
                     }
                 }
 
-                redirect(info);// writing all the content of file/files in the file after >
+                if(args[i].equals(">")){redirect(info);}// writing all the content of file/files in the file after >
+                else if (args[i].equals(">>")){append(info);}
                 return; // stop function
             }
         }
