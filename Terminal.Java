@@ -1,12 +1,12 @@
-
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.io.IOException;
-//import java.nio.file.*;
-import java.util.Scanner;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
+import java.util.Scanner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -74,7 +74,7 @@ public class Terminal {
             cat();
         } else if (cmd.equals("WC")) {
             WC();
-        } else if (cmd.equals("cp") && parser.getArgs().length == 3 && parser.getArgs()[0].equals("-r")) {
+        } else if (cmd.equals("cp") && parser.getArgs().length >= 3 && parser.getArgs()[0].equals("-r")) {
             cp_r(parser.getArgs()[1], parser.getArgs()[2]);
         } else if (cmd.equals("cp")) {
             cp();
@@ -91,9 +91,22 @@ public class Terminal {
     }
 
     // commands
+
     //pwd command which gets the current path we are working in
     public void pwd() {
-        System.out.println(path.toAbsolutePath());
+
+        String data=path.toAbsolutePath().toString();
+        boolean flag = false;
+        append(data);
+        // this checks that the argument contain > so it goes to redirect function also the i+1 checks that there is an argument after >
+        for (int i = 0; i < parser.getArgs().length; i++) {
+            if (parser.getArgs()[i].equals(">") && (i + 1) < parser.getArgs().length) {
+                redirect(data);
+                flag = true;}
+        }
+        if (flag == false) {
+            System.out.println(path.toAbsolutePath());}
+
     }
 
     // cd command
@@ -114,32 +127,98 @@ public class Terminal {
                 }
             }
         }
+        append (path.toString());
     }
-
     //ls command
-    public void ls() {
+    public void swap(File[]files,int i,int j){
+        File temp=files[i];
+        files[i]=files[j];
+        files[j]=temp;
+    }
+
+    public void selectionSort(File[] file){
+        for(int i=0;i<file.length-1;i++){
+            for(int j=i+1;j<file.length;j++){
+                String file1=file[i].getName().toUpperCase();
+                String file2=file[j].getName().toUpperCase();
+                if(file1.compareTo(file2) > 0){// file1 > file2 -> >0 ,file1<fil2 -> <0 ,file1=file2 -> =0
+                    swap(file,i,j);
+                }
+            }
+        }
 
     }
 
+    public void ls(){
+        String output=" ";
+        boolean flag = false;
+        for (int i = 0; i < parser.getArgs().length; i++) {
+            if (parser.getArgs()[i].equals(">") ){
+                flag = true;
+                break;}
+        }
+        File current=new File(path.toString());//obj from file
+        if(!current.isDirectory()||!current.exists()){
+            System.out.println("Not a directory");
+            return;
+        }
+
+
+        if (current != null) {// not empty
+            File[] file = current.listFiles();//list the files
+            selectionSort(file);//sort
+            for (int i = 0; i < file.length; i++) {
+                File files = file[i];
+                if (files.isDirectory()) {// make sure if its folder or not
+                    output += files.getName() + "(folder)" + "\n";
+                    if (flag==false){ System.out.println(files.getName() + "(folder)");}
+                } else {
+                    output += files.getName() + "\n";
+                    if (flag==false){System.out.println(files.getName());}
+                }
+            }
+        }
+        else{
+            System.out.println("Directory is emty");
+        }
+        for (int i = 0; i < parser.getArgs().length; i++) {
+            if (parser.getArgs()[i].equals(">") && (i + 1) < parser.getArgs().length) {
+                redirect(output);
+                break;
+            }
+        }
+
+        append(output);
+    }
     //mkdir command
     public void mkdir() {
+        String data=" ";
+
         for (String arg : parser.getArgs()) {
             Path dir = Paths.get(arg);
-
+            if (Arrays.asList(parser.getArgs()).contains(">>")) {
+                append(Paths.get(arg).toString());
+            }
             if (!dir.isAbsolute()) {
                 dir = path.resolve(dir);
             }
 
             if (Files.exists(dir)) {
-                System.out.println("Directory already exists: " + dir);
+                data="Directory already exists: " + dir;
+
+                System.out.println(data);
             } else {
                 try {
                     Files.createDirectories(dir);
+
                 } catch (IOException e) {
                     System.out.println(e.getMessage());
+                    return;
                 }
             }
         }
+
+
     }
 
     //rmdir command
@@ -193,20 +272,56 @@ public class Terminal {
         }
     }
 
-    //touch command
-    public void touch() {
 
+    //touch command
+    public void touch(){
+        File newfile = null;
+        try {
+            String[] args = parser.getArgs();
+
+            if (args.length < 1) {
+                System.out.println("touch <filename>");
+                return;
+            }
+            String fileName = String.join(" ", args);
+            newfile = new File(fileName);
+            File parent=newfile.getParentFile();
+            if (parent != null && !parent.exists()) {
+                System.out.println(" Parent folder does not exist: " + newfile.getParentFile().getAbsolutePath());
+                return;
+            }
+
+            if (newfile.createNewFile()) {           // create file
+                System.out.println("File created: " + newfile.getAbsolutePath());
+            } else {
+                System.out.println("File already exists"+ newfile.getAbsolutePath());
+            }
+        } catch (IOException e) {
+            System.out.println("An error occurred");
+            e.printStackTrace(); // Print error details
+            return;
+        }
+        String files = newfile.getAbsolutePath();
+
+        append(files);
     }
 
     //cp commands
     public void cp() {
-        if (parser.getArgs().length != 2) {
+        boolean found = false;
+
+        // Check if there is >>
+        if (parser.getArgs().length > 2 && parser.getArgs()[2].equals(">>")) {
+            found = true;
+        }
+        if (parser.getArgs().length < 2) {
             System.out.println("cp command requires 2 arguments");
             return;
         }
         Path source = path.resolve(parser.getArgs()[0]);
         Path destination = path.resolve(parser.getArgs()[1]);
-
+        if(found){
+            append(source +"->" + destination);}
         try {
             if (!Files.exists(source)) { //checks if the source exists
                 System.out.println("source file does not exist");
@@ -223,13 +338,24 @@ public class Terminal {
 
             System.out.println("File copied successfully.");
 
+
         } catch (IOException e) {
             System.out.println("Error copying file: " + e.getMessage());
         }
+
     }
 
-    //rm file.txt this take the argument which is file.txt and see if it exits and delete it
+    //cp_r command
     public void cp_r(String sourcedir, String destdir) {
+        boolean found = false;
+
+        // Check if there is >>
+        for (int i = 0; i < parser.getArgs().length; i++) {
+            if (parser.getArgs()[i].equals(">>")) {
+                found = true;
+                break;
+            }
+        }
         Path source = path.resolve(sourcedir);
         Path destination = path.resolve(destdir);
         try {
@@ -260,19 +386,43 @@ public class Terminal {
             }
 
             System.out.println("Copied successfully!");
+            if(found){
+                append(source +"->" + destination);}
         } catch (IOException e) {
             System.out.println("Error while copying: " + e.getMessage());
         }
     }
-
+    //rm file.txt this take the argument which is file.txt and see if it exits and delete it
     public void rm() {
         String[] args = parser.getArgs();
         // we are taking only one argument if less or more we will return
+
+        String fileName ;
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals(">>")) {
+                fileName = args[i - 1];
+                Path filePath = path.resolve(fileName);
+
+                if (Files.exists(filePath)) {
+                    try {
+                        Files.delete(filePath);
+                        System.out.println("Deleted: " + fileName);
+                        append( "Deleted"+fileName);
+                    } catch (IOException e) {
+                        System.out.println("Error deleting file: " + e.getMessage());
+                    }
+                } else {
+                    System.out.println(fileName + " not found");
+                }
+                return;
+            }
+        }
         if (args.length != 1) {
             System.out.println("write the file");
             return;
         }
-        String fileName = args[0];
+
+        fileName = args[0];
         Path filePath = path.resolve(fileName); //getting fall path of the file in the computer
 
         if (Files.exists(filePath)) {
@@ -285,21 +435,70 @@ public class Terminal {
         } else {
             System.out.println(fileName + " cant be deleted as it is not found");
         }
-    }
 
+    }
     //cat command
     public void cat() {
         String[] args = parser.getArgs();
+        String content="";
+        Path filePath;
+        String data;
+        Path srcFile;
+
+
 
         // if no arguments
         if (args.length == 0) {
             System.out.println("cat should contain at least one argument");
             return;
         }
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals(">>")) {
+                srcFile = path.resolve(args[i - 1]);
+                if (!Files.exists(srcFile)) {
+                    System.out.println("File not found: " + args[i - 1]);
+                    return;
+                }
+                try {
+                    data = Files.readString(srcFile);
+                    append(data);
+                    return;
+                } catch (IOException e) {
+                    System.out.println("Error reading file: " + e.getMessage());
+                    return;
+                }}
+
+        }
+        // > in cat function
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals(">") && (i + 1) < args.length) {
+
+                String info = ""; // store the arguments before >
+                for (int j = 0; j < i; j++)  // this loop to get the info before >
+                {
+                    Path file = path.resolve(args[j]); // get the path for the agrument
+                    if (!Files.exists(file)) {
+                        System.out.println("File not found: " + args[j]);
+                        return;
+                    }
+                    try {
+                        info += Files.readString(file); // read file/files info
+                    } catch (IOException e) {
+                        System.out.println("Error reading file: " + args[j]);
+                        return;
+                    }
+                }
+
+                redirect(info);// writing all the content of file/files in the file after >
+                return; // stop function
+            }
+        }
+
 
         // One argument- print file content
+
         if (args.length == 1) {
-            Path filePath = path.resolve(args[0]);
+            filePath = path.resolve(args[0]);
             if (!Files.exists(filePath)) { //chacks if file exists
                 System.out.println("File not found: " + args[0]);
                 return;
@@ -331,7 +530,7 @@ public class Terminal {
 
             try {
                 // Read from first file and append to second
-                String content = Files.readString(firstFile);
+                content = Files.readString(firstFile);
                 Files.writeString(secondFile, content, java.nio.file.StandardOpenOption.APPEND);
                 System.out.println("Contents of " + args[0] + " appended to " + args[1]);
             } catch (IOException e) {
@@ -339,13 +538,28 @@ public class Terminal {
             }
             return;
         }
+
     }
 
     //WC command
     public void WC() {
         String[] args = parser.getArgs();
+        String characters;
+        boolean found = false;
+        // the flag is to print it only in the file so if there isnt > then print it normally if there is the flag will be true
+        boolean flag = false;
 
-        if (args.length != 1) {
+        // Check if there is >>
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals(">>")) {
+                found = true;
+
+                break;
+            }
+        }
+
+
+        if (args.length < 1) {
             System.out.println("WC command needs one argument");
             return;
         }
@@ -366,7 +580,6 @@ public class Terminal {
             for (String line : Files.readAllLines(filePath)) {
                 lineCount++;
                 charCount += line.length();
-                // Split by whitespace for words
                 String[] words = line.trim().split("\\s+");
                 if (words.length == 1 && words[0].isEmpty()) {
                     continue; // skip empty lines
@@ -374,13 +587,69 @@ public class Terminal {
                 wordCount += words.length;
             }
 
-            System.out.println( lineCount +" " + wordCount + " " + charCount + " "+ args[0]);
+            characters = lineCount + " " + wordCount + " " + charCount + " " + args[0];
+
+            if (found) {
+                append(characters);
+            }
+            // this checks that the argument contain > so it goes to redirect function also the i+1 checks that there is an argument after >
+            for (int i = 0; i < parser.getArgs().length; i++) {
+                if (parser.getArgs()[i].equals(">") && (i + 1) < parser.getArgs().length) {
+                    redirect(characters);
+                    flag = true;}
+            }
+
+            if(flag==false){
+                System.out.println(characters);}
+
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());
         }
 
     }
+    //> command which overwrite a file by replacing the content and if it doesnt exist create new file
+    public void redirect(String data) {
+        String fileName="";
+        for (int i = 0; i < parser.getArgs().length; i++) {
+            if (parser.getArgs()[i].equals(">") ) {
+                fileName=parser.getArgs()[i+1];
+                break;}
+        }
+        //this means if the file exist then overwrite it
+        try (FileWriter writer = new FileWriter(fileName, false)) {
+            writer.write(data); // here we are writing data that are output of a command into the file
+            System.out.println("Output written to " + fileName);
+        } catch (IOException e) {
+            System.out.println("we couldn't write to " + fileName );
+        }
+    }
 
+    // >> command
+    public void append(String data){
+        String[]args=parser.getArgs();
+        for(int i=0;i<args.length;i++){
+            if(args[i].equals(">>")&& (i+1) < args.length){
+                String filename=args[i+1];
+                File file=new File(filename);
+                if(!file.exists()){
+                    try{
+                        file.createNewFile();
+                    }
+                    catch (IOException e){
+                        return;
+                    }
+                }
+                try( FileWriter write=new FileWriter(args[i+1],true)){
+
+                    System.out.println("printed in the file");
+                    write.write(data);
+
+                }
+                catch (IOException e){
+                    return;
+                }
+            }
+        }}
     // zip command
     public void zip() {
         try {
@@ -424,25 +693,56 @@ public class Terminal {
 
     //unzip command
     public void unzip() {
+        String[] args = parser.getArgs();
+        if (args.length < 1) {
+            System.out.println("unzip command requires a zip file name");
+            return;
+        }
+        Path zipFilePath = path.resolve(args[0]);
+        Path destDir;
+        if (args.length >= 2) { //if the user chose a specific directory to unzip the file in it
+            destDir = path.resolve(args[1]);}
+        else {
 
-    }
+            destDir = path;
+        }
+        if (!Files.exists(zipFilePath)) {
+            System.out.println("Zip file not found: " + zipFilePath);
+            return;
+        }
+        try (java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(Files.newInputStream(zipFilePath))) {
+            java.util.zip.ZipEntry entry;
+
+            while ((entry = zis.getNextEntry()) != null) {
+                Path newFilePath = destDir.resolve(entry.getName()).normalize();
+                if (entry.isDirectory()) {
+                    Files.createDirectories(newFilePath);
+                } else {
+                    Files.createDirectories(newFilePath.getParent());
+                    Files.copy(zis, newFilePath, StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+            System.out.println("Unzipped successfully to: " + destDir); }
+        catch (IOException e) {
+            System.out.println("Error during unzip process: " + e.getMessage());}
+
+        }
 
     // exit command stops the programm
     public void exit() {
         System.exit(0); // Ends the program
     }
 
-    // ......
     public void path() {
         System.out.println(path);
     }
-
+    // Main cladd
     public static void main(String[] args) {
-        // deh al bn read beha al input zy cin keda
+        // getting the command from the user
         Scanner sc = new Scanner(System.in);
         Parser parser = new Parser();
         Terminal terminal = new Terminal(parser);
-
+        // it will loop until the input is exit and it will go to  terminal.chooseCommandAction(); where exit will stop the program
         while (true) {
             System.out.print("> ");
             String input = sc.nextLine();
