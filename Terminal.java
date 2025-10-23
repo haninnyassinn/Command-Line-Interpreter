@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  */
 
-
+package com.mycompany.terminal;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -97,24 +97,31 @@ public class Terminal {
 
     // commands
 
- //pwd command which gets the current path we are working in
+    //pwd command which gets the current path we are working in
     public void pwd() {
 
         String data=path.toAbsolutePath().toString();
         boolean flag = false;
-        append(data);
+       
         // this checks that the argument contain > so it goes to redirect function also the i+1 checks that there is an argument after >
         for (int i = 0; i < parser.getArgs().length; i++) {
-            if (parser.getArgs()[i].equals(">") && (i + 1) < parser.getArgs().length) {
+            if (parser.getArgs()[i].equals(">")  && (i + 1) < parser.getArgs().length) {
+                
                 redirect(data);
-            flag = true;}
+                flag = true;}
+        }
+        for (int i = 0; i < parser.getArgs().length; i++) {
+            if (parser.getArgs()[i].equals(">>")  && (i + 1) < parser.getArgs().length) {
+                
+                 append(data);
+                flag = true;}
         }
         if (flag == false) {
             System.out.println(path.toAbsolutePath());}
 
     }
 
-// cd command
+    // cd command
     public void cd() {
         if (parser.getArgs().length == 0) {
             path = Paths.get(System.getProperty("user.home"));
@@ -134,7 +141,7 @@ public class Terminal {
         }
         append (path.toString());
     }
-//ls command
+    //ls command
     public void swap(File[]files,int i,int j){
         File temp=files[i];
         files[i]=files[j];
@@ -158,7 +165,7 @@ public class Terminal {
         String output=" ";
         boolean flag = false;
         for (int i = 0; i < parser.getArgs().length; i++) {
-            if (parser.getArgs()[i].equals(">") ){
+            if (parser.getArgs()[i].equals(">") || parser.getArgs()[i].equals(">>") ){
                 flag = true;
                 break;}
         }
@@ -169,28 +176,28 @@ public class Terminal {
         }
 
 
-            if (current != null) {// not empty
-                File[] file = current.listFiles();//list the files
-                selectionSort(file);//sort
-                for (int i = 0; i < file.length; i++) {
-                    File files = file[i];
-                    if (files.isDirectory()) {// make sure if its folder or not
-                        output += files.getName() + "(folder)" + "\n";
-                       if (flag==false){ System.out.println(files.getName() + "(folder)");}
-                    } else {
-                        output += files.getName() + "\n";
-                        if (flag==false){System.out.println(files.getName());}
-                    }
+        if (current != null) {// not empty
+            File[] file = current.listFiles();//list the files
+            selectionSort(file);//sort
+            for (int i = 0; i < file.length; i++) {
+                File files = file[i];
+                if (files.isDirectory()) {// make sure if its folder or not
+                    output += files.getName() + "(folder)" + "\n";
+                    if (flag==false){ System.out.println(files.getName() + "(folder)");}
+                } else {
+                    output += files.getName() + "\n";
+                    if (flag==false){System.out.println(files.getName());}
                 }
             }
-            else{
+        }
+        else{
             System.out.println("Directory is emty");
-             }
+        }
         for (int i = 0; i < parser.getArgs().length; i++) {
             if (parser.getArgs()[i].equals(">") && (i + 1) < parser.getArgs().length) {
                 redirect(output);
                 break;
-                }
+            }
         }
 
         append(output);
@@ -226,7 +233,7 @@ public class Terminal {
 
     }
 
-//rmdir command
+    //rmdir command
     public void rmdir() {
         try {
             if (parser.getArgs().length == 0) {
@@ -278,7 +285,7 @@ public class Terminal {
     }
 
 
-//touch command
+    //touch command
     public void touch(){
         File newfile = null;
         try {
@@ -311,7 +318,7 @@ public class Terminal {
         append(files);
     }
 
-//cp commands
+    //cp commands
     public void cp() {
         boolean found = false;
 
@@ -329,19 +336,19 @@ public class Terminal {
             append(source +"->" + destination);}
         try {
             if (!Files.exists(source)) { //checks if the source exists
-                System.out.println("source file does not exist");
+              if(!found)  System.out.println("source file does not exist");
                 return;
             }
 
             if (Files.isDirectory(source)) { //checks if the file is directory
-                System.out.println("cannot copy a directory");
+               if(!found) System.out.println("cannot copy a directory");
                 return;
             }
 
             // copy and overwrite if destination exists
             Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
 
-            System.out.println("File copied successfully.");
+           if(!found) System.out.println("File copied successfully.");
 
 
         } catch (IOException e) {
@@ -350,9 +357,10 @@ public class Terminal {
 
     }
 
-//cp_r command
+    //cp_r command
     public void cp_r(String sourcedir, String destdir) {
         boolean found = false;
+
 
         // Check if there is >>
         for (int i = 0; i < parser.getArgs().length; i++) {
@@ -390,14 +398,14 @@ public class Terminal {
                 Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
             }
 
-            System.out.println("Copied successfully!");
+          if(!found ) { System.out.println("Copied successfully!");}
             if(found){
                 append(source +"->" + destination);}
         } catch (IOException e) {
             System.out.println("Error while copying: " + e.getMessage());
         }
     }
- //rm file.txt this take the argument which is file.txt and see if it exits and delete it
+    //rm file.txt this take the argument which is file.txt and see if it exits and delete it
     public void rm() {
         String[] args = parser.getArgs();
         // we are taking only one argument if less or more we will return
@@ -442,14 +450,14 @@ public class Terminal {
         }
 
     }
-//cat command
+    //cat command
     public void cat() {
         String[] args = parser.getArgs();
         String content="";
         Path filePath;
         String data;
         Path srcFile;
-
+ boolean found=false;
 
 
         // if no arguments
@@ -462,14 +470,15 @@ public class Terminal {
                 srcFile = path.resolve(args[i - 1]);
                 if (!Files.exists(srcFile)) {
                     System.out.println("File not found: " + args[i - 1]);
+                    found=true;
                     return;
                 }
                 try {
                     data = Files.readString(srcFile);
-                    append(data);
+                 append(data);
                     return;
                 } catch (IOException e) {
-                    System.out.println("Error reading file: " + e.getMessage());
+                   if(!found) System.out.println("Error reading file: " + e.getMessage());
                     return;
                 }}
 
@@ -546,7 +555,7 @@ public class Terminal {
 
     }
 
-//WC command
+    //WC command
     public void WC() {
         String[] args = parser.getArgs();
         String characters;
@@ -558,21 +567,20 @@ public class Terminal {
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals(">>")) {
                 found = true;
-
                 break;
             }
         }
 
 
         if (args.length < 1) {
-            System.out.println("WC command needs one argument");
+          if(!found)  System.out.println("WC command needs one argument");
             return;
         }
 
         Path filePath = path.resolve(args[0]);
 
         if (!Files.exists(filePath)) {
-            System.out.println("File not found: " + args[0]);
+          if(!found)  System.out.println("File not found: " + args[0]);
             return;
         }
 
@@ -604,15 +612,15 @@ public class Terminal {
                     flag = true;}
             }
 
-            if(flag==false){
-            System.out.println(characters);}
+            if(flag==false&&found==false  ){
+                System.out.println(characters);}
 
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());
         }
 
     }
- //> command which overwrite a file by replacing the content and if it doesnt exist create new file
+    //> command which overwrite a file by replacing the content and if it doesnt exist create new file
     public void redirect(String data) {
         String fileName="";
         for (int i = 0; i < parser.getArgs().length; i++) {
@@ -629,7 +637,7 @@ public class Terminal {
         }
     }
 
-// >> command
+    // >> command
     public void append(String data){
         String[]args=parser.getArgs();
         for(int i=0;i<args.length;i++){
@@ -646,7 +654,7 @@ public class Terminal {
                 }
                 try( FileWriter write=new FileWriter(args[i+1],true)){
 
-                    System.out.println("printed in the file");
+                   
                     write.write(data);
 
                 }
@@ -655,7 +663,7 @@ public class Terminal {
                 }
             }
         }}
-// zip command
+    // zip command
     public void zip() {
         try {
             String[] args = parser.getArgs();
@@ -696,12 +704,44 @@ public class Terminal {
         }
     }
 
-//unzip command
+    //unzip command
     public void unzip() {
+        String[] args = parser.getArgs();
+        if (args.length < 1) {
+            System.out.println("unzip command requires a zip file name");
+            return;
+        }
+        Path zipFilePath = path.resolve(args[0]);
+        Path destDir;
+        if (args.length >= 2) { //if the user chose a specific directory to unzip the file in it
+            destDir = path.resolve(args[1]);}
+        else {
 
-    }
+            destDir = path;
+        }
+        if (!Files.exists(zipFilePath)) {
+            System.out.println("Zip file not found: " + zipFilePath);
+            return;
+        }
+        try (java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(Files.newInputStream(zipFilePath))) {
+            java.util.zip.ZipEntry entry;
 
- // exit command stops the programm
+            while ((entry = zis.getNextEntry()) != null) {
+                Path newFilePath = destDir.resolve(entry.getName()).normalize();
+                if (entry.isDirectory()) {
+                    Files.createDirectories(newFilePath);
+                } else {
+                    Files.createDirectories(newFilePath.getParent());
+                    Files.copy(zis, newFilePath, StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+            System.out.println("Unzipped successfully to: " + destDir); }
+        catch (IOException e) {
+            System.out.println("Error during unzip process: " + e.getMessage());}
+
+        }
+
+    // exit command stops the programm
     public void exit() {
         System.exit(0); // Ends the program
     }
@@ -709,13 +749,13 @@ public class Terminal {
     public void path() {
         System.out.println(path);
     }
-// Main cladd
+    // Main cladd
     public static void main(String[] args) {
-       // getting the command from the user
+        // getting the command from the user
         Scanner sc = new Scanner(System.in);
         Parser parser = new Parser();
         Terminal terminal = new Terminal(parser);
-       // it will loop until the input is exit and it will go to  terminal.chooseCommandAction(); where exit will stop the program
+        // it will loop until the input is exit and it will go to  terminal.chooseCommandAction(); where exit will stop the program
         while (true) {
             System.out.print("> ");
             String input = sc.nextLine();
