@@ -164,10 +164,13 @@ public class Terminal {
     public void ls(){
         String output=" ";
         boolean flag = false;
-         if (!parser.getArgs()[0].equals(">>") && parser.getArgs().length > 0 && !parser.getArgs()[0].equals(">")) {
-        System.out.println(" 'ls' does not take any arguments.");
-        return;
-    }
+       String[] args = parser.getArgs();
+
+if (args.length > 0 && !args[0].equals(">") && !args[0].equals(">>")) {
+    System.out.println("'ls' does not take any arguments.");
+    return;
+}
+
         for (int i = 0; i < parser.getArgs().length; i++) {
             if (parser.getArgs()[i].equals(">") || parser.getArgs()[i].equals(">>") ){
                 flag = true;
@@ -642,7 +645,7 @@ public class Terminal {
                 }
                 try( FileWriter write=new FileWriter(args[i+1],true)){
 
-                   
+                 
                     write.write(data);
 
                 }
