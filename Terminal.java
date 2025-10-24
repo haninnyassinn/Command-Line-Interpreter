@@ -210,11 +210,17 @@ if (args.length > 0 && !args[0].equals(">") && !args[0].equals(">>")) {
         append(output);
     }
     //mkdir command
+    //mkdir command
     public void mkdir() {
         String data=" ";
+        if (parser.getArgs().length == 0) {
+            System.out.println("mkdir: missing argument");
+            return;
+        }
 
         for (String arg : parser.getArgs()) {
             Path dir = Paths.get(arg);
+
             if (Arrays.asList(parser.getArgs()).contains(">>")) {
                 append(Paths.get(arg).toString());
             }
@@ -264,6 +270,9 @@ if (args.length > 0 && !args[0].equals(">") && !args[0].equals(">>")) {
                             Files.delete(file.toPath());
                             System.out.println("Removed empty directory: " + file.getName());
                         }
+                        else {
+                            System.out.println("The directory is not empty.");
+                        }
                     }
                 }
             } else if (parser.getArgs().length == 1) {
@@ -283,14 +292,17 @@ if (args.length > 0 && !args[0].equals(">") && !args[0].equals(">>")) {
                     String[] contents = file.list();
                     if (contents != null && contents.length == 0) {
                         Files.delete(file.toPath());
+                        System.out.println("Removed empty directory: " + file.getName());
                     }
+                    else {
+                            System.out.println("The directory is not empty.");
+                    }   
                 }
             }
         } catch (IOException e) {
             System.out.println("rmdir: error deleting directory");
         }
     }
-
 
     //touch command
     public void touch(){
