@@ -315,7 +315,12 @@ if (args.length > 0 && !args[0].equals(">") && !args[0].equals(">>")) {
                 return;
             }
             String fileName = String.join(" ", args);
-            newfile = new File(path.toFile(), fileName);
+             File newfiles =new File( fileName);
+             if (newfiles.isAbsolute()) {
+              newfile=newfiles;
+             }
+             else{
+            newfile = new File(path.toFile(), fileName);}
             File parent=newfile.getParentFile();
             if (parent != null && !parent.exists()) {
                 System.out.println(" Parent folder does not exist: " + newfile.getParentFile().getAbsolutePath());
