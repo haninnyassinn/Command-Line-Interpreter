@@ -351,8 +351,8 @@ public class Terminal {
             System.out.println("cp command requires 2 arguments");
             return;
         }
-        Path source = path.resolve(parser.getArgs()[0]);
-        Path destination = path.resolve(parser.getArgs()[1]);
+        Path source = path.resolve(parser.getArgs()[0]); // Find the source file to copy
+        Path destination = path.resolve(parser.getArgs()[1]); // Find where to copy it to
         try {
             if (!Files.exists(source)) { //checks if the source exists
                 System.out.println("source file does not exist");
@@ -773,4 +773,5 @@ public class Terminal {
         }
 
     }
+
 }
