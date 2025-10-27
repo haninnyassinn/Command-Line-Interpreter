@@ -2,8 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  */
 
-
-package com.mycompany.terminal;
+//package com.mycompany.terminal;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -29,7 +28,7 @@ class Parser {
         String[] words = input.trim().split("\\s+"); // used trim to make sure no spaces before or after, used (\\s+) to make sure if there is more than space doesnt consider an arg
 
         commandName = words[0];
-        args = new String[words.length - 1];  // size of arge is number of words - command name
+        args = new String[words.length - 1];  // size of args is number of words - command name
 
         for (int i = 1; i < words.length; i++) {
             args[i - 1] = words[i];
@@ -122,25 +121,28 @@ public class Terminal {
 
     }
 
-    // cd command
+    // cd command , this command changes directory
     public void cd() {
+        //Changes to the home directory
         if (parser.getArgs().length == 0) {
             path = Paths.get(System.getProperty("user.home"));
-        } else if (parser.getArgs()[0].equals("..")) {
+        } else if (parser.getArgs()[0].equals("..")) { //moves to the parent directory of the current path
             path = path.getParent();
         } else if (parser.getArgs().length == 1) {
+            //path.get(), take the object and make it into a path
+            //path.resolve() this checks if it is a full path leave it as it is if relative  path then combine with the current path
             Path inputPath = path.resolve(Paths.get(parser.getArgs()[0])).normalize();
-            if (!Files.exists(inputPath)) {
+            if (!Files.exists(inputPath)) { // check if the path exits
                 System.out.print("bash: cd: " + inputPath + ": No such file or directory\n");
-            } else {
+            } else { // the path exists
                 if (inputPath.isAbsolute()) {
-                    path = inputPath.normalize();
+                    path = inputPath.normalize(); //for the full path, we use the path as it is normalize() is just for cleaning up
                 } else {
-                    path = inputPath;
+                    path = inputPath; // for relative path
                 }
             }
         }
-        append (path.toString());
+
     }
     //ls command
     public void swap(File[]files,int i,int j){
@@ -207,43 +209,41 @@ public class Terminal {
                 break;
             }
         }
-  
+
         append(output);
     }
-  
     //mkdir command
     public void mkdir() {
         String data=" ";
+        //check if no args , if ags=0 then return
         if (parser.getArgs().length == 0) {
             System.out.println("mkdir: missing argument");
             return;
         }
-
+        //loop through each argument
         for (String arg : parser.getArgs()) {
-            Path dir = Paths.get(arg);
-
-            if (Arrays.asList(parser.getArgs()).contains(">>")) {
-                append(Paths.get(arg).toString());
-            }
+            Path dir = Paths.get(arg);// convert the string argument into a path object
+          // if it isnt a full path then resolve into the current path so it is a full path
             if (!dir.isAbsolute()) {
                 dir = path.resolve(dir);
             }
-
+           //check if the dir already exists
             if (Files.exists(dir)) {
                 data="Directory already exists: " + dir;
 
                 System.out.println(data);
             } else {
                 try {
+                    //create a new dir if it doesnt exist
                     Files.createDirectories(dir);
 
                 } catch (IOException e) {
+                    //handle errors
                     System.out.println(e.getMessage());
                     return;
                 }
             }
         }
-
 
     }
 
@@ -307,24 +307,23 @@ public class Terminal {
 
     //touch command
     public void touch(){
-        File newfile = null;//variable to store created file in
+        File newfile = null;
         try {
-            String[] args = parser.getArgs();//arg myfile.txt de arg
+            String[] args = parser.getArgs();
 
-            if (args.length < 1) {//touch la 22olo feen el file
+            if (args.length < 1) {
                 System.out.println("touch <filename>");
                 return;
             }
-            String fileName = String.join(" ", args);//if there is a space 
-            File newfiles =new File( fileName);//obj lsa msh file created
-            if (newfiles.isAbsolute()) {//lw path kaml hst3mlo 3ltol
+            String fileName = String.join(" ", args);
+            File newfiles =new File( fileName);
+            if (newfiles.isAbsolute()) {
                 newfile=newfiles;
             }
             else{
-                newfile = new File(path.toFile(), fileName);}//lw bs 2sm el file h3mlo create fl current path
-            
+                newfile = new File(path.toFile(), fileName);}
             File parent=newfile.getParentFile();
-            if (parent != null && !parent.exists()) {//check 3la parent
+            if (parent != null && !parent.exists()) {
                 System.out.println(" Parent folder does not exist: " + newfile.getParentFile().getAbsolutePath());
                 return;
             }
@@ -341,60 +340,45 @@ public class Terminal {
         }
         String files = newfile.getAbsolutePath();
 
-       
+
     }
 
     //cp commands
     public void cp() {
-        boolean found = false;
 
-        // Check if there is >>
-        if (parser.getArgs().length > 2 && parser.getArgs()[2].equals(">>")) {
-            found = true;
-        }
+
         if (parser.getArgs().length < 2) {
             System.out.println("cp command requires 2 arguments");
             return;
         }
         Path source = path.resolve(parser.getArgs()[0]);
         Path destination = path.resolve(parser.getArgs()[1]);
-        if(found){
-            append(source +"->" + destination);}
         try {
             if (!Files.exists(source)) { //checks if the source exists
-                if(!found)  System.out.println("source file does not exist");
+                System.out.println("source file does not exist");
                 return;
             }
 
             if (Files.isDirectory(source)) { //checks if the file is directory
-                if(!found) System.out.println("cannot copy a directory");
+                System.out.println("cannot copy a directory");
                 return;
             }
 
             // copy and overwrite if destination exists
             Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
 
-            if(!found) System.out.println("File copied successfully.");
+            System.out.println("File copied successfully.");
 
 
         } catch (IOException e) {
             System.out.println("Error copying file: " + e.getMessage());
-        }
+}
 
-    }
+}
 
     //cp_r command
     public void cp_r(String sourcedir, String destdir) {
-        boolean found = false;
 
-
-        // Check if there is >>
-        for (int i = 0; i < parser.getArgs().length; i++) {
-            if (parser.getArgs()[i].equals(">>")) {
-                found = true;
-                break;
-            }
-        }
         Path source = path.resolve(sourcedir);
         Path destination = path.resolve(destdir);
         try {
@@ -424,9 +408,8 @@ public class Terminal {
                 Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
             }
 
-            if(!found ) { System.out.println("Copied successfully!");}
-            if(found){
-                append(source +"->" + destination);}
+             System.out.println("Copied successfully!");
+
         } catch (IOException e) {
             System.out.println("Error while copying: " + e.getMessage());
         }
@@ -435,7 +418,6 @@ public class Terminal {
     public void rm() {
         String[] args = parser.getArgs();
         // we are taking only one argument if less or more we will return
-
         String fileName ;
         if (args.length != 1) {
             System.out.println("write the file");
@@ -443,7 +425,8 @@ public class Terminal {
         }
 
         fileName = args[0];
-        Path filePath = path.resolve(fileName); //getting fall path of the file in the computer
+        // path.resolve(fileName) - combines current directory path with filename
+        Path filePath = path.resolve(fileName); //getting full path of the file in the computer
 
         if (Files.exists(filePath)) {
             try {
@@ -451,12 +434,13 @@ public class Terminal {
                 System.out.println("Deleted: " + fileName);
             } catch (IOException e) {
                 System.out.println("there is a problem in deleting the file :" + fileName);
-            } // the file might be locked
+            } // the file might be locked or open
         } else {
-            //error message because the file doesnt exist 
+            //error message because the file doesnt exist
             System.out.println(fileName + " cant be deleted as it is not found");
+        }
 
-        }}
+    }
     //cat command
     public void cat() {
         String[] args = parser.getArgs();
@@ -519,20 +503,20 @@ public class Terminal {
         }
 
         // Multiple arguments (print all contents to screen)
-for (int i = 0; i < args.length; i++) {
-    Path currentFile = path.resolve(args[i]);
-    if (!Files.exists(currentFile)) {
-        System.out.println("File not found: " + args[i]);
-        continue;
-    }
+        for (int i = 0; i < args.length; i++) {
+            Path currentFile = path.resolve(args[i]);
+            if (!Files.exists(currentFile)) {
+                System.out.println("File not found: " + args[i]);
+                continue;
+            }
 
-    try {
-        System.out.println("----- " + args[i] + " -----");
-        Files.lines(currentFile).forEach(System.out::println);
-    } catch (IOException e) {
-        System.out.println("Error reading file: " + args[i]);
-    }
-}
+            try {
+                System.out.println("----- " + args[i] + " -----");
+                Files.lines(currentFile).forEach(System.out::println);
+            } catch (IOException e) {
+                System.out.println("Error reading file: " + args[i]);
+            }
+        }
 
     }
 
@@ -622,7 +606,7 @@ for (int i = 0; i < args.length; i++) {
     public void append(String data){
         String[]args=parser.getArgs();
         for(int i=0;i<args.length;i++){
-            if(args[i].equals(">>")&& (i+1) < args.length){// >> , file
+            if(args[i].equals(">>")&& (i+1) < args.length){
                 String filename=args[i+1];
                 File file=new File(filename);
                 if(!file.exists()){
@@ -633,10 +617,10 @@ for (int i = 0; i < args.length; i++) {
                         return;
                     }
                 }
-                try( FileWriter write=new FileWriter(args[i+1],true)){//msh old content 
+                try( FileWriter write=new FileWriter(args[i+1],true)){
 
 
-                    write.write(data);//add text
+                    write.write(data);
 
                 }
                 catch (IOException e){
@@ -718,54 +702,54 @@ for (int i = 0; i < args.length; i++) {
     }
 
 
-        //unzip command
+    //unzip command
     public void unzip() {
-            String[] args = parser.getArgs();
+        String[] args = parser.getArgs();
 
-            if (args.length < 1) { //make sure that the user typed in a path and if not an error message will be displayed
-                System.out.println("You should write a zip file name for this command");
-                return;
-            }
+        if (args.length < 1) { //make sure that the user typed in a path and if not an error message will be displayed
+            System.out.println("You should write a zip file name for this command");
+            return;
+        }
 
-            Path zipFilePath = path.resolve(args[0]);
-            Path destDir = path;
+        Path zipFilePath = path.resolve(args[0]);
+        Path destDir = path;
 
-            for (int i = 1; i < args.length - 1; i++) {
-                if (args[i].equals("-d")) {
-                    destDir = Paths.get(args[i + 1]);
-                    if (!destDir.isAbsolute()) {
-                        destDir = path.resolve(destDir);
-                    }
-                    break;
+        for (int i = 1; i < args.length - 1; i++) {
+            if (args[i].equals("-d")) {
+                destDir = Paths.get(args[i + 1]);
+                if (!destDir.isAbsolute()) {
+                    destDir = path.resolve(destDir);
                 }
-            }
-
-            if (!Files.exists(zipFilePath)) {
-                System.out.println("Zip file not found: " + zipFilePath);
-                return;
-            }
-
-            try (java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(Files.newInputStream(zipFilePath))) {
-                java.util.zip.ZipEntry entry;
-
-                while ((entry = zis.getNextEntry()) != null) {
-                    Path newFilePath = destDir.resolve(entry.getName()).normalize();
-                    if (entry.isDirectory()) {
-                        Files.createDirectories(newFilePath);
-                    } else {
-                        Files.createDirectories(newFilePath.getParent());
-                        Files.copy(zis, newFilePath, StandardCopyOption.REPLACE_EXISTING);
-                    }
-                }
-
-                System.out.println("Unzipped successfully to: " + destDir);
-            } catch (IOException e) {
-                System.out.println("Error during unzip process: " + e.getMessage());
+                break;
             }
         }
 
+        if (!Files.exists(zipFilePath)) {
+            System.out.println("Zip file not found: " + zipFilePath);
+            return;
+        }
 
-        // exit command stops the programm
+        try (java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(Files.newInputStream(zipFilePath))) {
+            java.util.zip.ZipEntry entry;
+
+            while ((entry = zis.getNextEntry()) != null) {
+                Path newFilePath = destDir.resolve(entry.getName()).normalize();
+                if (entry.isDirectory()) {
+                    Files.createDirectories(newFilePath);
+                } else {
+                    Files.createDirectories(newFilePath.getParent());
+                    Files.copy(zis, newFilePath, StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+
+            System.out.println("Unzipped successfully to: " + destDir);
+        } catch (IOException e) {
+            System.out.println("Error during unzip process: " + e.getMessage());
+        }
+    }
+
+
+    // exit command stops the programm
     public void exit() {
         System.exit(0); // Ends the program
     }
