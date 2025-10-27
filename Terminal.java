@@ -2,6 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  */
 
+
 package com.mycompany.terminal;
 import java.io.File;
 import java.io.FileWriter;
@@ -153,7 +154,7 @@ public class Terminal {
             for(int j=i+1;j<file.length;j++){
                 String file1=file[i].getName().toUpperCase();
                 String file2=file[j].getName().toUpperCase();
-                if(file1.compareTo(file2) > 0){// file1 > file2 -> >0 ,file1<fil2 -> <0 ,file1=file2 -> =0
+                if(file1.compareTo(file2) > 0){// file1 > file2 -> >0 b3do ,file1<fil2 -> <0 ,file1=file2 -> =0
                     swap(file,i,j);
                 }
             }
@@ -166,7 +167,7 @@ public class Terminal {
         boolean flag = false;
         String[] args = parser.getArgs();
 
-        if (args.length > 0 && !args[0].equals(">") && !args[0].equals(">>")) {
+        if (args.length > 0 && !args[0].equals(">") && !args[0].equals(">>")) {//valiadtion check
             System.out.println("'ls' does not take any arguments.");
             return;
         }
@@ -176,8 +177,8 @@ public class Terminal {
                 flag = true;
                 break;}
         }
-        File current=new File(path.toString());//obj from file
-        if(!current.isDirectory()||!current.exists()){
+        File current=new File(path.toString());//obj from file 3shan el current dir
+        if(!current.isDirectory()||!current.exists()){//mwgod w dir wla la
             System.out.println("Not a directory");
             return;
         }
@@ -185,7 +186,7 @@ public class Terminal {
 
         if (current != null) {// not empty
             File[] file = current.listFiles();//list the files
-            selectionSort(file);//sort
+            selectionSort(file);//sort kont 3mlaha fo2
             for (int i = 0; i < file.length; i++) {
                 File files = file[i];
                 if (files.isDirectory()) {// make sure if its folder or not
@@ -206,10 +207,10 @@ public class Terminal {
                 break;
             }
         }
-
+  
         append(output);
     }
-    //mkdir command
+  
     //mkdir command
     public void mkdir() {
         String data=" ";
@@ -306,23 +307,24 @@ public class Terminal {
 
     //touch command
     public void touch(){
-        File newfile = null;
+        File newfile = null;//variable to store created file in
         try {
-            String[] args = parser.getArgs();
+            String[] args = parser.getArgs();//arg myfile.txt de arg
 
-            if (args.length < 1) {
+            if (args.length < 1) {//touch la 22olo feen el file
                 System.out.println("touch <filename>");
                 return;
             }
-            String fileName = String.join(" ", args);
-            File newfiles =new File( fileName);
-            if (newfiles.isAbsolute()) {
+            String fileName = String.join(" ", args);//if there is a space 
+            File newfiles =new File( fileName);//obj lsa msh file created
+            if (newfiles.isAbsolute()) {//lw path kaml hst3mlo 3ltol
                 newfile=newfiles;
             }
             else{
-                newfile = new File(path.toFile(), fileName);}
+                newfile = new File(path.toFile(), fileName);}//lw bs 2sm el file h3mlo create fl current path
+            
             File parent=newfile.getParentFile();
-            if (parent != null && !parent.exists()) {
+            if (parent != null && !parent.exists()) {//check 3la parent
                 System.out.println(" Parent folder does not exist: " + newfile.getParentFile().getAbsolutePath());
                 return;
             }
@@ -339,7 +341,7 @@ public class Terminal {
         }
         String files = newfile.getAbsolutePath();
 
-        append(files);
+       
     }
 
     //cp commands
@@ -435,25 +437,6 @@ public class Terminal {
         // we are taking only one argument if less or more we will return
 
         String fileName ;
-        for (int i = 0; i < args.length; i++) {
-            if (args[i].equals(">>")) {
-                fileName = args[i - 1];
-                Path filePath = path.resolve(fileName);
-
-                if (Files.exists(filePath)) {
-                    try {
-                        Files.delete(filePath);
-                        System.out.println("Deleted: " + fileName);
-                        append( "Deleted"+fileName);
-                    } catch (IOException e) {
-                        System.out.println("Error deleting file: " + e.getMessage());
-                    }
-                } else {
-                    System.out.println(fileName + " not found");
-                }
-                return;
-            }
-        }
         if (args.length != 1) {
             System.out.println("write the file");
             return;
@@ -470,10 +453,10 @@ public class Terminal {
                 System.out.println("there is a problem in deleting the file :" + fileName);
             } // the file might be locked
         } else {
+            //error message because the file doesnt exist 
             System.out.println(fileName + " cant be deleted as it is not found");
-        }
 
-    }
+        }}
     //cat command
     public void cat() {
         String[] args = parser.getArgs();
@@ -639,7 +622,7 @@ for (int i = 0; i < args.length; i++) {
     public void append(String data){
         String[]args=parser.getArgs();
         for(int i=0;i<args.length;i++){
-            if(args[i].equals(">>")&& (i+1) < args.length){
+            if(args[i].equals(">>")&& (i+1) < args.length){// >> , file
                 String filename=args[i+1];
                 File file=new File(filename);
                 if(!file.exists()){
@@ -650,10 +633,10 @@ for (int i = 0; i < args.length; i++) {
                         return;
                     }
                 }
-                try( FileWriter write=new FileWriter(args[i+1],true)){
+                try( FileWriter write=new FileWriter(args[i+1],true)){//msh old content 
 
 
-                    write.write(data);
+                    write.write(data);//add text
 
                 }
                 catch (IOException e){
