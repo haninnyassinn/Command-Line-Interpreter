@@ -223,11 +223,11 @@ public class Terminal {
         //loop through each argument
         for (String arg : parser.getArgs()) {
             Path dir = Paths.get(arg);// convert the string argument into a path object
-          // if it isnt a full path then resolve into the current path so it is a full path
+            // if it isnt a full path then resolve into the current path so it is a full path
             if (!dir.isAbsolute()) {
                 dir = path.resolve(dir);
             }
-           //check if the dir already exists
+            //check if the dir already exists
             if (Files.exists(dir)) {
                 data="Directory already exists: " + dir;
 
@@ -351,8 +351,8 @@ public class Terminal {
             System.out.println("cp command requires 2 arguments");
             return;
         }
-        Path source = path.resolve(parser.getArgs()[0]); // Find the source file to copy
-        Path destination = path.resolve(parser.getArgs()[1]); // Find where to copy it to
+        Path source = path.resolve(parser.getArgs()[0]);
+        Path destination = path.resolve(parser.getArgs()[1]);
         try {
             if (!Files.exists(source)) { //checks if the source exists
                 System.out.println("source file does not exist");
@@ -372,9 +372,9 @@ public class Terminal {
 
         } catch (IOException e) {
             System.out.println("Error copying file: " + e.getMessage());
-}
+        }
 
-}
+    }
 
     //cp_r command
     public void cp_r(String sourcedir, String destdir) {
@@ -408,7 +408,7 @@ public class Terminal {
                 Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
             }
 
-             System.out.println("Copied successfully!");
+            System.out.println("Copied successfully!");
 
         } catch (IOException e) {
             System.out.println("Error while copying: " + e.getMessage());
@@ -457,28 +457,34 @@ public class Terminal {
             return;
         }
 
-        // > , >>in cat function
+        // Check if the command includes '>' or '>>' for redirection or appending
         for (int i = 0; i < args.length; i++) {
             if ((args[i].equals(">")|| args[i].equals(">>"))&& (i + 1) < args.length) {
 
-                String info = ""; // store the arguments before >
+                String info = ""; // store the arguments before redirection (>)
                 for (int j = 0; j < i; j++)  // this loop to get the info before >
                 {
-                    Path file = path.resolve(args[j]); // get the path for the agrument
+                    Path file = path.resolve(args[j]); // get the full path for the agrument
                     if (!Files.exists(file)) {
                         System.out.println("File not found: " + args[j]);
                         return;
                     }
                     try {
-                        info += Files.readString(file); // read file/files info
+                        info += Files.readString(file); // read file/files append to info
                     } catch (IOException e) {
                         System.out.println("Error reading file: " + args[j]);
                         return;
                     }
                 }
 
-                if(args[i].equals(">")){redirect(info);}// writing all the content of file/files in the file after >
-                else if (args[i].equals(">>")){append(info);}
+                // If '>' is used → overwrite destination file with content
+                if(args[i].equals(">")){
+                    redirect(info);
+                }
+                // If '>>' is used → append content to destination file
+                else if (args[i].equals(">>")){
+                    append(info);
+                }
                 return; // stop function
             }
         }
@@ -488,7 +494,7 @@ public class Terminal {
 
         if (args.length == 1) {
             filePath = path.resolve(args[0]);
-            if (!Files.exists(filePath)) { //chacks if file exists
+            if (!Files.exists(filePath)) { //checks if file exists
                 System.out.println("File not found: " + args[0]);
                 return;
             }
@@ -505,13 +511,16 @@ public class Terminal {
         // Multiple arguments (print all contents to screen)
         for (int i = 0; i < args.length; i++) {
             Path currentFile = path.resolve(args[i]);
-            if (!Files.exists(currentFile)) {
+
+            if (!Files.exists(currentFile)) { // Skip and warn if file not found
                 System.out.println("File not found: " + args[i]);
                 continue;
             }
 
             try {
+                // Print file name as header before its content
                 System.out.println("----- " + args[i] + " -----");
+                // Print all lines of the file
                 Files.lines(currentFile).forEach(System.out::println);
             } catch (IOException e) {
                 System.out.println("Error reading file: " + args[i]);
@@ -585,6 +594,8 @@ public class Terminal {
         }
 
     }
+    
+    
     //> command which overwrite a file by replacing the content and if it doesnt exist create new file
     public void redirect(String data) {
         String fileName="";
@@ -773,5 +784,4 @@ public class Terminal {
         }
 
     }
-
 }
