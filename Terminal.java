@@ -121,29 +121,29 @@ public class Terminal {
 
     }
 
-    // cd command , this command changes directory
+// cd command , this command changes directory
     public void cd() {
         //Changes to the home directory
         if (parser.getArgs().length == 0) {
             path = Paths.get(System.getProperty("user.home"));
-        } else if (parser.getArgs()[0].equals("..")) { //moves to the parent directory of the current path
+        } 
+        else if (parser.getArgs()[0].equals("..")) { //moves to the parent directory of the current path
             path = path.getParent();
-        } else if (parser.getArgs().length == 1) {
+        } 
+        else if (parser.getArgs().length == 1) {
             //path.get(), take the object and make it into a path
-            //path.resolve() this checks if it is a full path leave it as it is if relative  path then combine with the current path
+            //path.resolve() this checks if it is a full path leave it as it is 
+            //if relative  path then combine with the current path
             Path inputPath = path.resolve(Paths.get(parser.getArgs()[0])).normalize();
             if (!Files.exists(inputPath)) { // check if the path exits
                 System.out.print("bash: cd: " + inputPath + ": No such file or directory\n");
-            } else { // the path exists
-                if (inputPath.isAbsolute()) {
-                    path = inputPath.normalize(); //for the full path, we use the path as it is normalize() is just for cleaning up
-                } else {
-                    path = inputPath; // for relative path
-                }
+            } 
+            else { // the path exists
+                path = inputPath;       
             }
         }
-
     }
+    
     //ls command
     public void swap(File[]files,int i,int j){
         File temp=files[i];
@@ -246,9 +246,9 @@ public class Terminal {
         }
 
     }
-
+    
     //rmdir command
-    public void rmdir() {
+    public void rmdir() {      // remove empty directory, take one arguments
         try {
             if (parser.getArgs().length == 0) {
                 System.out.println("rmdir: missing argument");
@@ -258,28 +258,28 @@ public class Terminal {
                 System.out.println("rmdir: too many arguments");
                 return;
             }
-            if (parser.getArgs()[0].equals("*")) {
-                File[] files = new File(path.toString()).listFiles();
+            if (parser.getArgs()[0].equals("*")) {  // remove all empty folders 
+                File[] files = new File(path.toString()).listFiles();  // list of folders that exist in my path
                 if (files == null) {
                     System.out.println("rmdir: cannot read directory contents");
                     return;
                 }
                 for (File file : files) {
-                    if (Files.isDirectory(file.toPath())) {
-                        String[] contents = file.list();
-                        if (contents != null && contents.length == 0) {
-                            Files.delete(file.toPath());
+                    if (Files.isDirectory(file.toPath())) {   // check if it is diretory
+                        String[] contents = file.list();      // list of each directory content
+                        if (contents != null && contents.length == 0) {  // check if directory content is empty
+                            Files.delete(file.toPath());                 // if empty delete it
                             System.out.println("Removed empty directory: " + file.getName());
-                        }
-                        else {
+                        } 
+                        else {                                           // else print not empty message
                             System.out.println("The directory is not empty.");
                         }
                     }
                 }
             } else if (parser.getArgs().length == 1) {
-                Path dir = Paths.get(parser.getArgs()[0]);
+                Path dir = Paths.get(parser.getArgs()[0]);  // convert the argument to path
                 if (!dir.isAbsolute()) {
-                    dir = path.resolve(dir);
+                    dir = path.resolve(dir);      // combine
                 }
 
                 File file = new File(dir.toString());
@@ -785,3 +785,4 @@ public class Terminal {
 
     }
 }
+
